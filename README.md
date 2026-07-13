@@ -45,7 +45,7 @@ Unlike standard automated tools, this script handles multiple Database Managemen
 
 ### Step 1: Clone the repository
 ```bash
-git clone [https://github.com/MhnXp/BlindSQLi-Dumper.git](https://github.com/MhnXp/BlindSQLi-Dumper.git)
+git clone https://github.com/MhnXp/BlindSQLi-Dumper.git
 ```
 ## Step 2: Navigate to directory
 ```bash
